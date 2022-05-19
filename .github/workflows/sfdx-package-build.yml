@@ -49,8 +49,8 @@ jobs:
               run: sfdx force:source:push -u scratch-org
               
             # run unit tests
-            - name: 'Run unit tests in scratch org'
-              run: sfdx force:apex:test:run -u scratch-org
+            - name: 'Run unit tests in scratch org with coverage'
+              run: sfdx force:apex:test:run -u scratch-org -c -r human 
               
             # Create package version and extract its id
             - name: 'Create package version'
