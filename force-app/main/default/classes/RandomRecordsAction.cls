@@ -5,25 +5,25 @@ public class RandomRecordsAction {
         final List<RandomRecordsAction_ActionOutput> results = new List<RandomRecordsAction_ActionOutput>();
         for (RandomRecordsAction_ActionInput actionInput : actionInputs) {
             // validate input
-            if (actionInput.input.percentage > 1 || actionInput.input.percentage < 0) throw new RandomRecordsActionException();
-            if (null == actionInput.input.random || actionInput.input.random < 0 || actionInput.input.random >= 1) throw new RandomRecordsActionException();
+            if (actionInput.percentage > 1 || actionInput.percentage < 0) throw new RandomRecordsActionException();
+            if (null == actionInput.random || actionInput.random < 0 || actionInput.random >= 1) throw new RandomRecordsActionException();
 
             // create result
             final RandomRecordsAction_ActionOutput result = new RandomRecordsAction_ActionOutput();
-            if (actionInput.input.records.size() <= 1) {
+            if (actionInput.records.size() <= 1) {
                 // 0 or 1 record so nothing really to select from - just return records
-                result.output.records = actionInput.input.records;
-            } else if ((Decimal)actionInput.input.records.size() * actionInput.input.percentage < 0.5) {
+                result.records = actionInput.records;
+            } else if ((Decimal)actionInput.records.size() * actionInput.percentage < 0.5) {
                 // the percentage is so small we would never select any one record
-                result.output.records = new List<SObject>();
+                result.records = new List<SObject>();
             } else {
                 // calc number of records to select
-                final integer selectCount = (Integer)Math.ceil((Decimal)actionInput.input.records.size() * actionInput.input.percentage);
+                final integer selectCount = (Integer)Math.ceil((Decimal)actionInput.records.size() * actionInput.percentage);
                 if (selectCount < 1) {
                     // safety valve - shouldn't happen
                     throw new RandomRecordsActionException();
                 }
-                result.output.records = selectRecords(actionInput.input.records, selectCount, actionInput.input.random);
+                result.records = selectRecords(actionInput.records, selectCount, actionInput.random);
             }
 
             // add result
@@ -36,7 +36,6 @@ public class RandomRecordsAction {
 
     private static List<SObject> selectRecords(List<SObject> records, Integer selectCount, Decimal random) {
         final Map<Id, SObject> result = new Map<Id, SObject>();
-        System.debug(selectCount);
         while (result.size() < selectCount) {
             for (SObject r : records) {
                 if (result.size() >= selectCount) break;
@@ -44,18 +43,24 @@ public class RandomRecordsAction {
                 if (Math.random() > random) result.put(r.Id, r);
             }
         }
-        System.debug(result.values().size());
         return result.values();
     }
     
 
     public class RandomRecordsAction_ActionInput {
-        @InvocableVariable(label='Random Records Input' required=true)
-        public RandomRecordsActionInput input = new RandomRecordsActionInput();
+        @InvocableVariable(label='Records Input' required=true)
+        public List<SObject> records;
+
+        @InvocableVariable(label='Percentage' required=true)
+        public Decimal percentage;
+
+        @InvocableVariable(label='Random cutoff, Math.random() must be bigger than' required=false)
+        public Decimal random = 0.5;
     }
+
     public class RandomRecordsAction_ActionOutput {
-        @InvocableVariable(label='Random Records Output' required=true)
-        public RandomRecordsActionOutput output = new RandomRecordsActionOutput();
+        @InvocableVariable(label='Records Output' required=true)
+        public List<SObject> records;
     }
 
     public class RandomRecordsActionException extends Exception {}
