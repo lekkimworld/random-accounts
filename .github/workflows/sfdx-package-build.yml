@@ -3,7 +3,8 @@ name: SFDX Package Build
 
 # Workflow starts when receiving custom event sent by CI workflow
 on:
-    release:
+    workflow_dispatch:
+        
       
 jobs:
     packaging:
